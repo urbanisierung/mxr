@@ -115,101 +115,79 @@ Before finishing any task, verify:
 4. All tests pass.
 
 <!-- Part 3: Everything below is specific to THIS repository. -->
-<!-- Parts 1 & 2 (behavioral + coding quality) live in .github/copilot-instructions.md -->
 
 ## Tech Stack
 
-- **Architecture:** Turborepo monorepo
-- **Language:** TypeScript (strict mode) — latest stable
-- **Runtime:** Node.js — latest LTS
-- **Package Manager:** pnpm (workspaces)
-- **Build System:** Turborepo
-- **Testing:** Vitest
-- **Linting & Formatting:** Biome
-- **Frontend:** Preact 10 (same API as React, 3KB)
-- **State Management:** Zustand (preferred over raw Preact hooks for all state management)
-- **Dependencies:** Latest versions only; prefer mature, well-maintained packages
-- **Dependency Policy:** Only add external packages when functionality cannot be reasonably implemented in-repo
+- **Language:** Rust (latest stable)
+- **Architecture:** Cargo workspace monorepo
+- **Build:** `cargo build` via Justfile, musl static binaries
+- **Compile targets:** `x86_64-unknown-linux-musl`, `aarch64-unknown-linux-musl`
+- **Testing:** `cargo test` (unit + integration)
+- **CI:** GitHub Actions — release on tag push `v*`
+- **No async runtime** — blocking only
+
+## Key Dependencies
+
+- **clap** (derive API) — arg parsing, subcommand routing
+- **serde** + **toml** — config read/write
+- **self_replace** — atomic binary replacement during update
+- **reqwest** (blocking, rustls-tls) — GitHub API calls (no openssl)
+- **semver** — version comparison
+- **dirs** — resolving `~/.config/mxr/`
+- **anyhow** — error handling
 
 ## Project Structure
 
-Follow Turborepo best practices:
-
 ```
-apps/
-  frontend/        # Preact PWA (Vite + vite-plugin-pwa)
-packages/
-  ui/              # Shared design system: tokens, components, theme store
-turbo.json         # Turborepo pipeline configuration
-package.json       # Root package.json (all devDependencies here)
-biome.json         # Biome configuration
+mxr/
+├── Cargo.toml              # [workspace] members = ["crates/*"]
+├── Justfile                # build-release, install, ci-release
+├── install.sh              # curl-pipe-sh installer
+├── crates/
+│   ├── mxr-cli/           # binary crate — clap routing, main.rs
+│   ├── mxr-core/          # lib — config parsing, tmux exec, session logic
+│   └── mxr-update/        # lib — self-update from GitHub releases
+└── .github/
+    └── workflows/
+        └── release.yml     # build musl binaries, attach to GH release
 ```
-
-## Adding a New Package
-
-When creating a new published package under `packages/` or `apps/`, complete all of the following before finishing:
-
-1. **`package.json` required fields** — must include: `description`, `keywords` (≥ 3 entries), `license: "MIT"`, `repository.url` (pointing to `github.com/pagome-app/monorepo`), `homepage: "https://pagome.com"`, `bugs.url`, `publishConfig.access: "public"`. Match the field order of existing packages (build config first, then metadata).
-
-2. **`scripts/generate-readmes.mjs`** — add an entry to the `packages` object with `name`, `description`, and `content` (Overview, Features, Installation, Quick Start, API Reference). Also add the package to the `footer()` function's related packages list.
-
-3. **`scripts/sync-license.mjs`** — add the package path to the `PUBLISHED` array.
-
-4. **`scripts/check-packages.mjs`** — add the package path to the `PUBLISHED` array.
-
-5. **Run the scripts** to generate `LICENSE` and `README.md`:
-   ```sh
-   node scripts/sync-license.mjs
-   node scripts/generate-readmes.mjs
-   node scripts/check-packages.mjs   # must exit 0
-   ```
-
-Never hand-write a `README.md` or `LICENSE` for a published package — they are generated/synced by these scripts and will be overwritten on the next build.
-
-## Dependency Management
-
-- **All `devDependencies` must be declared in the root `package.json`** — never in individual app or package `package.json` files
-- Runtime `dependencies` belong in the respective app/package `package.json`
 
 ## Build & Check Commands
 
-- Build: `pnpm turbo build`
-- Lint & Format: `pnpm turbo check` or `pnpm biome check .`
-- Typecheck: `pnpm turbo typecheck` or `pnpm tsc --noEmit`
-- Test: `pnpm turbo test`
+- Build (release, musl): `just build-release`
+- Install to `~/.local/bin`: `just install`
+- Test: `cargo test --workspace`
+- Clippy: `cargo clippy --workspace -- -D warnings`
+- Format check: `cargo fmt --check`
 
-## Backend Guidelines
+## Rust Practices
 
-- **ESM only** — use `"type": "module"` in `package.json`, use `.js` extensions in imports
-- Follow latest Node.js best practices and recommendations
-- Use modern APIs: `fetch`, `node:` protocol imports, top-level `await`
-- Prefer native Node.js APIs over third-party packages where possible
-- Structure code for testability and separation of concerns
+- No `unwrap()` in production paths — use `anyhow` for error propagation
+- Exit with helpful error messages, not panics
+- One concern per crate — don't over-abstract within a crate
+- No async runtime — keep it simple and blocking
+- Prefer standard library over external crates where reasonable
 
-## Frontend Guidelines
+## Testing
 
-- **Preact** for all UI components — import from `preact` and `preact/hooks`, not `react`
-- **Zustand** for state management — centralize state in stores, avoid scattering `useState`/`useEffect` across components
-- Use **discriminated union state machines** in Zustand stores for all multi-step UI flows (routing, forms, async views)
-- Only use raw Preact hooks (`useState`, `useEffect`, `useRef`, etc.) when Zustand does not cover the use case
-- Optimize for render performance: minimize re-renders, use selectors in Zustand stores
+- Unit tests in `mxr-core` for config parsing (read, write, duplicate detection, removal)
+- No tmux required in tests — mock the command execution layer
+- Integration test: write a config, read it back, verify round-trip
+- Tests must be deterministic
 
-## Brand Tokens
+## Config
 
-All brand colors and design tokens are defined in **`packages/ui`** (`@pagome/ui`).
+Location: `~/.config/mxr/sessions.toml`
 
-- **Single source of truth**: CSS values live in `packages/ui/src/tokens.css`; JS/canvas mirror in `packages/ui/src/tokens.ts` — keep both in sync
-- **Token namespace**: all public tokens use `--pagome-*` prefix
-- **Usage**: `@import "@pagome/ui/tokens.css"` in app CSS entry points; import `TOKENS` from `@pagome/ui` for canvas/JS contexts
-- **Never hardcode brand colors** — always use `var(--pagome-*)` CSS variables
-- **Dark mode**: auto via `@media (prefers-color-scheme: dark)`; manual override via `[data-theme]` attribute; user preference persisted in the theme store (`packages/ui/src/theme.ts`)
+```toml
+[[session]]
+name = "myproject"
+dirs = ["/home/user/projects/myproject"]
 
-## TypeScript Practices
-
-- Prefer compile-time (type-level) guarantees over runtime checks
-- Write idiomatic TypeScript: use discriminated unions, template literals, and branded types where appropriate
-- TypeScript strict mode — zero type errors across the entire monorepo
-- Biome — zero warnings, zero errors
+[[session]]
+name = "infra"
+dirs = ["/home/user/infra", "/home/user/infra/terraform"]
+```
 
 ## Documentation Requirements
 
