@@ -1,0 +1,11 @@
+[package]
+name = "mxr"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+mxr-core = { path = "../mxr-core" }
+mxr-update = { path = "../mxr-update" }
+clap = { version = "4", features = ["derive"] }
+anyhow = "1"
+dirs = "5"
