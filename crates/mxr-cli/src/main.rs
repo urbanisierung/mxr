@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 #[derive(Parser)]
-#[command(name = "mxr", version, about = "tmux workspace manager")]
+#[command(name = "mxr", version, about = "tmux workspace manager", disable_help_subcommand = true)]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
@@ -39,6 +39,10 @@ enum Commands {
         #[arg(long)]
         check: bool,
     },
+    /// Checkout default branch, pull, and create a new numbered branch
+    Next,
+    /// Show command reference
+    Help,
     #[command(external_subcommand)]
     Name(Vec<String>),
 }
@@ -107,6 +111,11 @@ fn run(cli: Cli) -> Result<()> {
         Some(Commands::Ship { message }) => cmd_ship(message.as_deref()),
         Some(Commands::Import { file }) => cmd_import(file),
         Some(Commands::Update { check }) => cmd_update(check),
+        Some(Commands::Next) => cmd_next(),
+        Some(Commands::Help) => {
+            cmd_help();
+            Ok(())
+        }
     }
 }
 
@@ -280,6 +289,112 @@ fn run_cmd(cmd: &str, args: &[&str]) -> Result<()> {
         anyhow::bail!("'{}' exited with non-zero status", cmd);
     }
     Ok(())
+}
+
+fn cmd_help() {
+    println!("mxr — tmux workspace manager\n");
+    println!("USAGE: mxr <command> [args]\n");
+    println!("COMMANDS:");
+    println!("  <name>                     open session by name");
+    println!("  session add <name>         add current dir as session");
+    println!("  session open <name>        open tmux session (create if needed)");
+    println!("  session ls                 list configured sessions");
+    println!("  session rm <name>          remove session from config");
+    println!("  sync config <host>         copy sessions.toml to remote");
+    println!("  sync binary <host>         copy mxr binary to remote");
+    println!("  sync all <host>            copy config and binary");
+    println!("  ship [msg]                 commit, push, open PR");
+    println!("  next                       checkout default branch, pull, new branch");
+    println!("  import [--file <path>]     import legacy ~/.config/.mytmux");
+    println!("  update [--check]           self-update from GitHub releases");
+    println!("  help                       show this reference");
+    println!("\nRun `mxr <command> --help` for details.");
+}
+
+fn cmd_next() -> Result<()> {
+    require_cmd("git")?;
+    let repo_name = git_repo_name()?;
+    let default_branch = git_default_branch()?;
+    let n = next_branch_number(&repo_name)?;
+    let branch_name = format!("{}{}", repo_name, n);
+    run_cmd("git", &["checkout", &default_branch])?;
+    run_cmd("git", &["pull"])?;
+    run_cmd("git", &["checkout", "-b", &branch_name])?;
+    println!("Switched to new branch '{}'.", branch_name);
+    Ok(())
+}
+
+fn git_repo_name() -> Result<String> {
+    let output = Command::new("git")
+        .args(["remote", "get-url", "origin"])
+        .output()
+        .context("git remote get-url origin")?;
+    if !output.status.success() {
+        // fall back to current directory name
+        return Ok(std::env::current_dir()
+            .ok()
+            .and_then(|p| p.file_name().map(|n| n.to_string_lossy().into_owned()))
+            .unwrap_or_else(|| "branch".to_string()));
+    }
+    let url = String::from_utf8(output.stdout)?.trim().to_string();
+    let name = url
+        .trim_end_matches('/')
+        .split(['/', ':'])
+        .next_back()
+        .unwrap_or(&url)
+        .trim_end_matches(".git")
+        .to_string();
+    if name.is_empty() {
+        anyhow::bail!("cannot determine repo name from remote URL: {}", url);
+    }
+    Ok(name)
+}
+
+fn git_default_branch() -> Result<String> {
+    let output = Command::new("git")
+        .args(["symbolic-ref", "refs/remotes/origin/HEAD"])
+        .output();
+    if let Ok(out) = output {
+        if out.status.success() {
+            let s = String::from_utf8(out.stdout)?;
+            if let Some(branch) = s.trim().rsplit('/').next() {
+                return Ok(branch.to_string());
+            }
+        }
+    }
+    for branch in &["main", "master"] {
+        let ok = Command::new("git")
+            .args([
+                "show-ref",
+                "--verify",
+                &format!("refs/heads/{}", branch),
+            ])
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false);
+        if ok {
+            return Ok(branch.to_string());
+        }
+    }
+    anyhow::bail!("cannot determine default branch (tried main, master)");
+}
+
+fn next_branch_number(repo_name: &str) -> Result<usize> {
+    let output = Command::new("git")
+        .args(["branch", "--list", &format!("{}[0-9]*", repo_name)])
+        .output()
+        .context("git branch --list")?;
+    let stdout = String::from_utf8(output.stdout)?;
+    let max = stdout
+        .lines()
+        .filter_map(|line| {
+            let name = line.trim().trim_start_matches("* ");
+            let suffix = name.strip_prefix(repo_name)?;
+            suffix.parse::<usize>().ok()
+        })
+        .max()
+        .unwrap_or(0);
+    Ok(max + 1)
 }
 
 fn git_current_branch() -> Result<String> {
