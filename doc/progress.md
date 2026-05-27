@@ -1,5 +1,9 @@
 # Progress
 
+## 2026-05-27
+
+- `mxr next`: checkout default branch, pull, create next numbered branch from repo name
+
 ## 2026-05-26
 
 - Initial implementation: workspace scaffold, config parsing, session management

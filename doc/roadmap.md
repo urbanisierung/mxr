@@ -13,3 +13,4 @@
 - [x] Auto-update hint (stderr, non-blocking, 24h cooldown)
 - [x] install.sh curl-pipe installer
 - [x] GitHub Actions musl release workflow
+- [x] mxr next (checkout default, pull, new numbered branch)
