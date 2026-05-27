@@ -1,0 +1,495 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="mxr — tmux workspace manager">
+
+  <!-- N8 Terminal command nav -->
+  <nav class="nav reveal" style="--i:0">
+    <div class="site-frame nav__inner">
+      <span class="nav__prompt" aria-hidden="true">$</span>
+      <a href="/" class="nav__wordmark">mxr</a>
+      <div class="nav__flags" role="list">
+        <a href="https://github.com/urbanisierung/mxr/releases" class="nav__flag" role="listitem">--releases</a>
+        <a href="https://github.com/urbanisierung/mxr" class="nav__flag" role="listitem">--github</a>
+      </div>
+      <span class="nav__cursor" aria-hidden="true">▮</span>
+    </div>
+  </nav>
+
+  <main>
+    <!-- Manifesto hero -->
+    <section class="hero reveal" style="--i:1">
+      <div class="site-frame">
+        <p class="hero__eyebrow">tmux workspace manager for remote machines</p>
+        <h1 class="hero__display">REMOTE<br/>MACHINES<br/>FORGET.</h1>
+        <p class="hero__sub">mxr doesn't.</p>
+      </div>
+    </section>
+
+    <!-- Problem assertions -->
+    <section class="claims reveal" style="--i:2">
+      <div class="site-frame">
+        <p class="claim">You ssh in. You check which tmux sessions exist. You try to remember which one had the editor, and which one was watching logs.</p>
+        <p class="claim">You have a second machine. Same project, different setup. You type the same mkdir commands again from memory.</p>
+        <p class="claim">You move to a new machine. You start from zero.</p>
+      </div>
+    </section>
+
+    <!-- Turn -->
+    <section class="turn reveal" style="--i:3">
+      <div class="site-frame">
+        <p class="turn__text">One config file. Every machine knows where everything lives.</p>
+      </div>
+    </section>
+
+    <!-- Commands / features -->
+    <section class="commands reveal" style="--i:4">
+      <div class="site-frame">
+        <h2 class="commands__head">How it works.</h2>
+        <ol class="command-list" role="list">
+          <li class="command-item">
+            <code class="command-line">mxr session add myproject</code>
+            <p class="command-desc">Register the current directory as a named session. Saved to <code>~/.config/mxr/sessions.toml</code>.</p>
+          </li>
+          <li class="command-item">
+            <code class="command-line">mxr myproject</code>
+            <p class="command-desc">Attach to the session if it exists. Create it if it doesn't — opening windows in the right directories, selecting window 1.</p>
+          </li>
+          <li class="command-item">
+            <code class="command-line">mxr sync all user@host</code>
+            <p class="command-desc">Push your config and the mxr binary to another machine. It has everything your current machine has.</p>
+          </li>
+          <li class="command-item">
+            <code class="command-line">mxr ship "fix: stop losing sessions"</code>
+            <p class="command-desc"><code>git add -A</code>, commit, push, open a PR. The full flow in one command.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Install CTA -->
+    <section class="install reveal" style="--i:5">
+      <div class="site-frame">
+        <h2 class="install__head">Get it.</h2>
+        <div class="install__block">
+          <pre class="install__pre"><code class="install__code">curl -sSfL \
+  https://github.com/urbanisierung/mxr/releases/latest/download/mxr-linux-x86_64 \
+  -o ~/.local/bin/mxr &amp;&amp; chmod +x ~/.local/bin/mxr</code></pre>
+          <button class="install__copy" aria-label="Copy install command" data-copy="curl -sSfL https://github.com/urbanisierung/mxr/releases/latest/download/mxr-linux-x86_64 -o ~/.local/bin/mxr && chmod +x ~/.local/bin/mxr">
+            <span class="copy-label">copy</span>
+          </button>
+        </div>
+        <p class="install__meta">x86_64 and aarch64 Linux. Static musl binary. No runtime required. <a href="https://github.com/urbanisierung/mxr/releases">All releases →</a></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Ft5 Statement footer -->
+  <footer class="footer reveal" style="--i:6">
+    <div class="site-frame footer__inner">
+      <p class="footer__statement">Every machine. One config. No rebuilding.</p>
+      <div class="footer__meta">
+        <span class="footer__wordmark">mxr</span>
+        <a href="https://github.com/urbanisierung/mxr" class="footer__link">GitHub</a>
+        <a href="https://github.com/urbanisierung/mxr/releases" class="footer__link">Releases</a>
+        <span class="footer__credit">MIT</span>
+      </div>
+    </div>
+  </footer>
+
+</Layout>
+
+<style>
+  /* ── Nav (N8 Terminal command) ───────────────────────────── */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--color-paper);
+    border-bottom: 1px solid var(--color-rule);
+    padding-block: var(--space-md);
+  }
+
+  .nav__inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+  }
+
+  .nav__prompt {
+    color: var(--color-accent);
+    font-weight: 400;
+    user-select: none;
+  }
+
+  .nav__wordmark {
+    color: var(--color-ink);
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: -0.01em;
+    margin-right: var(--space-xs);
+  }
+
+  .nav__wordmark:hover { color: var(--color-ink); }
+
+  .nav__flags {
+    display: flex;
+    gap: var(--space-lg);
+    margin-right: auto;
+  }
+
+  .nav__flag {
+    color: var(--color-muted);
+    text-decoration: none;
+    transition: color var(--dur-micro) var(--ease-out);
+  }
+
+  .nav__flag:hover { color: var(--color-accent); }
+
+  .nav__cursor {
+    color: var(--color-accent);
+    animation: blink 1.1s step-end infinite;
+    user-select: none;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+  }
+
+  /* ── Hero ────────────────────────────────────────────────── */
+  .hero {
+    padding-block: var(--space-4xl) var(--space-3xl);
+    border-bottom: 1px solid var(--color-rule);
+  }
+
+  .hero__eyebrow {
+    font-size: var(--text-sm);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    margin-bottom: var(--space-xl);
+    font-family: var(--font-mono);
+  }
+
+  .hero__display {
+    font-family: var(--font-display);
+    font-size: var(--text-display);
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    text-transform: uppercase;
+    color: var(--color-ink);
+    overflow-wrap: anywhere;
+    min-width: 0;
+    max-width: 14ch;
+  }
+
+  .hero__sub {
+    margin-top: var(--space-xl);
+    font-size: var(--text-xl);
+    font-weight: 600;
+    color: var(--color-accent);
+    letter-spacing: -0.02em;
+  }
+
+  /* ── Claims ──────────────────────────────────────────────── */
+  .claims {
+    padding-block: var(--space-4xl);
+    border-bottom: 1px solid var(--color-rule);
+  }
+
+  .claim {
+    font-size: var(--text-lg);
+    line-height: 1.55;
+    color: var(--color-ink);
+    max-width: var(--measure);
+    font-weight: 400;
+  }
+
+  .claim + .claim {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-2xl);
+    border-top: 1px solid var(--color-rule);
+  }
+
+  /* ── Turn ────────────────────────────────────────────────── */
+  .turn {
+    padding-block: var(--space-4xl);
+    background-color: var(--color-paper-inv);
+  }
+
+  .turn__text {
+    font-family: var(--font-display);
+    font-size: var(--text-display-s);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    color: var(--color-ink-inv);
+    max-width: 22ch;
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+
+  /* ── Commands ────────────────────────────────────────────── */
+  .commands {
+    padding-block: var(--space-4xl);
+    border-bottom: 1px solid var(--color-rule);
+  }
+
+  .commands__head {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    margin-bottom: var(--space-3xl);
+    color: var(--color-ink);
+  }
+
+  .command-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .command-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+    align-items: start;
+    padding-block: var(--space-2xl);
+    border-top: 1px solid var(--color-rule);
+  }
+
+  .command-item:last-child {
+    border-bottom: 1px solid var(--color-rule);
+  }
+
+  .command-line {
+    font-family: var(--font-mono);
+    font-size: var(--text-md);
+    color: var(--color-accent);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    display: block;
+    overflow-wrap: break-word;
+    word-break: break-all;
+  }
+
+  .command-desc {
+    font-size: var(--text-base);
+    color: var(--color-muted);
+    line-height: 1.6;
+    max-width: var(--measure);
+  }
+
+  .command-desc code {
+    color: var(--color-neutral);
+    background-color: var(--color-paper-2);
+    padding: 0.1em 0.35em;
+    border-radius: var(--radius-sm);
+  }
+
+  /* ── Install ─────────────────────────────────────────────── */
+  .install {
+    padding-block: var(--space-4xl);
+  }
+
+  .install__head {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    margin-bottom: var(--space-xl);
+    color: var(--color-ink);
+  }
+
+  .install__block {
+    position: relative;
+    background-color: var(--color-paper-inv);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+
+  .install__pre {
+    flex: 1;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-rule-inv) transparent;
+  }
+
+  .install__code {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-ink-inv);
+    white-space: pre;
+    line-height: 1.7;
+    display: block;
+  }
+
+  .install__copy {
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid var(--color-rule-inv);
+    color: var(--color-muted-inv);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition:
+      color var(--dur-micro) var(--ease-out),
+      border-color var(--dur-micro) var(--ease-out);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .install__copy:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .install__copy:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  .install__copy[data-copied="true"] .copy-label::after {
+    content: "ied";
+  }
+
+  .install__copy[data-copied="true"] .copy-label {
+    color: var(--color-accent);
+  }
+
+  .install__meta {
+    margin-top: var(--space-lg);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+    line-height: 1.5;
+  }
+
+  .install__meta a {
+    color: var(--color-neutral);
+    text-decoration: underline;
+  }
+
+  .install__meta a:hover { color: var(--color-accent); }
+
+  /* ── Footer (Ft5 Statement) ──────────────────────────────── */
+  .footer {
+    border-top: 1px solid var(--color-rule);
+    padding-block: var(--space-3xl) var(--space-2xl);
+  }
+
+  .footer__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+  }
+
+  .footer__statement {
+    font-family: var(--font-display);
+    font-size: var(--text-display-s);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    color: var(--color-ink);
+    max-width: 24ch;
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+
+  .footer__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xl);
+    flex-wrap: wrap;
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--color-rule);
+  }
+
+  .footer__wordmark {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 400;
+    color: var(--color-ink);
+    letter-spacing: -0.01em;
+  }
+
+  .footer__link {
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+    text-decoration: none;
+    transition: color var(--dur-micro) var(--ease-out);
+  }
+
+  .footer__link:hover { color: var(--color-accent); }
+
+  .footer__credit {
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+    margin-left: auto;
+    font-family: var(--font-mono);
+  }
+
+  /* ── Responsive ──────────────────────────────────────────── */
+  @media (max-width: 60rem) {
+    .command-item {
+      grid-template-columns: 1fr;
+      gap: var(--space-md);
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .hero__display {
+      font-size: clamp(2.25rem, 10vw, 3.5rem);
+    }
+
+    .hero__sub {
+      font-size: var(--text-lg);
+    }
+
+    .claim {
+      font-size: var(--text-md);
+    }
+
+    .turn__text {
+      font-size: clamp(1.75rem, 6vw, 2.5rem);
+    }
+
+    .footer__statement {
+      font-size: clamp(1.75rem, 6vw, 2.5rem);
+    }
+
+    .install__block {
+      flex-direction: column;
+    }
+
+    .install__copy {
+      align-self: flex-start;
+    }
+
+    .nav__flags {
+      gap: var(--space-md);
+    }
+  }
+</style>
+
+<script>
+  // Copy install command
+  document.querySelector<HTMLButtonElement>('.install__copy')?.addEventListener('click', function() {
+    const cmd = this.dataset.copy;
+    if (!cmd) return;
+    navigator.clipboard.writeText(cmd).then(() => {
+      this.dataset.copied = 'true';
+      setTimeout(() => { delete this.dataset.copied; }, 2000);
+    }).catch(() => {});
+  });
+</script>
