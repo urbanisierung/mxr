@@ -41,6 +41,22 @@ enum Commands {
     },
     /// Checkout default branch, pull, and create a new numbered branch
     Next,
+    /// List configured sessions (alias for session ls)
+    Ls,
+    /// Add current dir as session (alias for session add)
+    Add {
+        name: String,
+        #[arg(long, short)]
+        dir: Option<PathBuf>,
+    },
+    /// Reattach to the most recently used tmux session
+    Back,
+    /// Kill a running tmux session
+    Kill { name: String },
+    /// Rename a session in config
+    Rename { old: String, new: String },
+    /// Open sessions.toml in $EDITOR
+    Edit,
     /// Show command reference
     Help,
     #[command(external_subcommand)]
@@ -112,6 +128,12 @@ fn run(cli: Cli) -> Result<()> {
         Some(Commands::Import { file }) => cmd_import(file),
         Some(Commands::Update { check }) => cmd_update(check),
         Some(Commands::Next) => cmd_next(),
+        Some(Commands::Ls) => cmd_session_ls(),
+        Some(Commands::Add { name, dir }) => cmd_session_add(name, dir),
+        Some(Commands::Back) => cmd_back(),
+        Some(Commands::Kill { name }) => cmd_kill(&name),
+        Some(Commands::Rename { old, new }) => cmd_rename(&old, &new),
+        Some(Commands::Edit) => cmd_edit(),
         Some(Commands::Help) => {
             cmd_help();
             Ok(())
@@ -291,11 +313,49 @@ fn run_cmd(cmd: &str, args: &[&str]) -> Result<()> {
     Ok(())
 }
 
+fn cmd_back() -> Result<()> {
+    run_cmd("tmux", &["attach"])
+        .map_err(|_| anyhow::anyhow!("no tmux sessions to attach to"))
+}
+
+fn cmd_kill(name: &str) -> Result<()> {
+    run_cmd("tmux", &["kill-session", "-t", name])
+        .with_context(|| format!("kill session '{}'", name))?;
+    println!("Killed session '{}'.", name);
+    Ok(())
+}
+
+fn cmd_rename(old: &str, new: &str) -> Result<()> {
+    let mut config = mxr_core::config::Config::load()?;
+    config.rename(old, new)?;
+    config.save()?;
+    println!("Renamed '{}' → '{}'.", old, new);
+    Ok(())
+}
+
+fn cmd_edit() -> Result<()> {
+    let editor = std::env::var("EDITOR")
+        .or_else(|_| std::env::var("VISUAL"))
+        .unwrap_or_else(|_| "vi".to_string());
+    let path = mxr_core::config::config_path()?;
+    // ensure the file exists before opening
+    mxr_core::config::Config::load()?;
+    use std::os::unix::process::CommandExt;
+    let err = Command::new(&editor).arg(&path).exec();
+    Err(anyhow::anyhow!("exec '{}': {}", editor, err))
+}
+
 fn cmd_help() {
     println!("mxr — tmux workspace manager\n");
     println!("USAGE: mxr <command> [args]\n");
     println!("COMMANDS:");
     println!("  <name>                     open session by name");
+    println!("  ls                         list configured sessions");
+    println!("  add <name>                 add current dir as session");
+    println!("  back                       reattach to most recent tmux session");
+    println!("  kill <name>                kill a running tmux session");
+    println!("  rename <old> <new>         rename a session in config");
+    println!("  edit                       open sessions.toml in $EDITOR");
     println!("  session add <name>         add current dir as session");
     println!("  session open <name>        open tmux session (create if needed)");
     println!("  session ls                 list configured sessions");

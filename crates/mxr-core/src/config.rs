@@ -72,6 +72,19 @@ impl Config {
         }
         Ok(())
     }
+
+    pub fn rename(&mut self, old: &str, new: &str) -> Result<()> {
+        if self.find(new).is_some() {
+            return Err(anyhow!("session '{}' already exists", new));
+        }
+        let session = self
+            .session
+            .iter_mut()
+            .find(|s| s.name == old)
+            .ok_or_else(|| anyhow!("session '{}' not found", old))?;
+        session.name = new.to_string();
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -127,6 +140,29 @@ mod tests {
     fn remove_missing_errors() {
         let mut cfg = Config::default();
         assert!(cfg.remove("nope").is_err());
+    }
+
+    #[test]
+    fn rename_existing() {
+        let mut cfg = Config::default();
+        cfg.add("old".into(), vec!["/x".into()]).unwrap();
+        cfg.rename("old", "new").unwrap();
+        assert!(cfg.find("old").is_none());
+        assert!(cfg.find("new").is_some());
+    }
+
+    #[test]
+    fn rename_missing_errors() {
+        let mut cfg = Config::default();
+        assert!(cfg.rename("nope", "x").is_err());
+    }
+
+    #[test]
+    fn rename_conflicts_errors() {
+        let mut cfg = Config::default();
+        cfg.add("a".into(), vec!["/x".into()]).unwrap();
+        cfg.add("b".into(), vec!["/y".into()]).unwrap();
+        assert!(cfg.rename("a", "b").is_err());
     }
 
     #[test]
