@@ -1,0 +1,21 @@
+{
+  "name": "web",
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "lint": "biome check .",
+    "format": "biome format --write ."
+  },
+  "dependencies": {
+    "astro": "^5.8.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@biomejs/biome": "^1.9.4",
+    "typescript": "^5.8.3"
+  }
+}

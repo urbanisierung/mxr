@@ -1,1 +1,27 @@
+# Rust
 /target/
+**/*.rs.bk
+
+# Node / pnpm
+node_modules/
+.pnpm-store/
+.pnpm-debug.log
+
+# Turbo
+.turbo/
+
+# Build outputs
+dist/
+.astro/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Editor
+.DS_Store
+.idea/
+*.suo
+*.user
+
