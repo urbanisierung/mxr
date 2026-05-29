@@ -4,8 +4,11 @@
 
 - Fix install.sh 404: it downloaded from `releases/latest/download/...`, but
   `releases/latest` only resolves full releases — all current releases are
-  prereleases, so it 404'd. install.sh now resolves the newest release
-  (prereleases included) via the GitHub API and downloads that tag's asset.
+  prereleases, so it 404'd (the binaries themselves were attached fine).
+  install.sh now resolves the newest release (prereleases included) via the
+  GitHub API and downloads that tag's asset.
+- release.yml: publish releases as full (`prerelease: false`, `make_latest:
+  true`) so `releases/latest` resolves going forward.
 
 ## 2026-05-27
 
