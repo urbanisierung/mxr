@@ -1,5 +1,12 @@
 # Progress
 
+## 2026-05-29
+
+- Fix install.sh 404: it downloaded from `releases/latest/download/...`, but
+  `releases/latest` only resolves full releases — all current releases are
+  prereleases, so it 404'd. install.sh now resolves the newest release
+  (prereleases included) via the GitHub API and downloads that tag's asset.
+
 ## 2026-05-27
 
 - `mxr next`: checkout default branch, pull, create next numbered branch from repo name
