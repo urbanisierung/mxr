@@ -43,4 +43,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/web/dist --project-name=mxrlp --branch=main
+          # Install wrangler inside the workspace member, not the workspace
+          # root, where pnpm refuses to add deps (ERR_PNPM_ADDING_TO_ROOT).
+          workingDirectory: apps/web
+          command: pages deploy dist --project-name=mxrlp --branch=main

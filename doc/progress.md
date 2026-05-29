@@ -12,6 +12,9 @@
 - deploy-web.yml: deploy the Astro web app (`apps/web`) to Cloudflare Pages on
   push to main via wrangler-action. Needs `CLOUDFLARE_API_TOKEN` and
   `CLOUDFLARE_ACCOUNT_ID` secrets.
+- deploy-web.yml: run wrangler-action with `workingDirectory: apps/web` so its
+  `pnpm add wrangler` installs into the workspace member instead of the
+  workspace root, which pnpm rejects with ERR_PNPM_ADDING_TO_ROOT.
 
 ## 2026-05-27
 
