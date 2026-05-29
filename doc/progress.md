@@ -9,6 +9,9 @@
   GitHub API and downloads that tag's asset.
 - release.yml: publish releases as full (`prerelease: false`, `make_latest:
   true`) so `releases/latest` resolves going forward.
+- deploy-web.yml: deploy the Astro web app (`apps/web`) to Cloudflare Pages on
+  push to main via wrangler-action. Needs `CLOUDFLARE_API_TOKEN` and
+  `CLOUDFLARE_ACCOUNT_ID` secrets.
 
 ## 2026-05-27
 
