@@ -63,15 +63,24 @@ dirs = ["/home/user/infra", "/home/user/infra/terraform"]
 The first directory always gets two windows. Each additional directory gets one window.
 
 CLAUDE.md templates for `mxr new` live in `~/.config/mxr/templates.toml`. Defaults are
-written on first run; edit them to set up your own. `{{name}}` and `{{stack}}` in the
-body are substituted when scaffolding:
+written on first run; edit them to set up your own. Each body shares a portable base
+(behavioral + quality guidelines) and adds a stack-specific section. Built-in templates:
+
+| Template | Stack |
+|----------|-------|
+| `default` | Portable base only (language-agnostic) |
+| `rust` | Rust — cargo, clippy, rustfmt |
+| `kb` | Markdown knowledge base — markdownlint-cli2, Prettier, cspell |
+| `ts-monorepo` | pnpm + Turborepo + Astro + Vite + Vitest + Biome + Preact + Zustand |
+
+`{{name}}` and `{{stack}}` in the body are substituted when scaffolding:
 
 ```toml
 [[template]]
 name = "rust"
 tech_stack = "Rust"
-description = "Rust project with cargo"
-body = "# {{name}}\n\n{{name}} is a {{stack}} project.\n"
+description = "Rust project (cargo, clippy, rustfmt)"
+body = "# {{name}}\n\n## Part 1 — Behavioral Guidelines\n..."
 ```
 
 ## Commands
