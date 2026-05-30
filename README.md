@@ -5,7 +5,7 @@ Rust CLI tool for managing tmux sessions and workspace workflows on remote machi
 ## Prerequisites
 
 - tmux
-- git + gh (for `mxr ship`)
+- git + gh (for `mxr ship` and `mxr new`)
 - ssh + scp (for `mxr sync`)
 
 ## Install
@@ -36,6 +36,9 @@ mxr session ls
 # Sync to a remote machine
 mxr sync all user@host
 
+# Scaffold a new repo: generate CLAUDE.md, init, push to GitHub
+mxr new myproject --template rust
+
 # Quick commit + push + PR
 mxr ship "feat: add something"
 
@@ -59,6 +62,18 @@ dirs = ["/home/user/infra", "/home/user/infra/terraform"]
 
 The first directory always gets two windows. Each additional directory gets one window.
 
+CLAUDE.md templates for `mxr new` live in `~/.config/mxr/templates.toml`. Defaults are
+written on first run; edit them to set up your own. `{{name}}` and `{{stack}}` in the
+body are substituted when scaffolding:
+
+```toml
+[[template]]
+name = "rust"
+tech_stack = "Rust"
+description = "Rust project with cargo"
+body = "# {{name}}\n\n{{name}} is a {{stack}} project.\n"
+```
+
 ## Commands
 
 | Command | Description |
@@ -72,6 +87,7 @@ The first directory always gets two windows. Each additional directory gets one 
 | `mxr sync binary <user@host>` | Copy binary to remote |
 | `mxr sync all <user@host>` | Copy both |
 | `mxr ship [message]` | Commit, push, create PR |
+| `mxr new <name> [--org O] [--template T] [--public]` | Scaffold a repo + CLAUDE.md and push to GitHub |
 | `mxr import [--file <path>]` | Import legacy format |
 | `mxr update` | Self-update |
 | `mxr update --check` | Check for updates only |

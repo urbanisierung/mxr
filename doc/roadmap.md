@@ -14,3 +14,8 @@
 - [x] install.sh curl-pipe installer
 - [x] GitHub Actions musl release workflow
 - [x] mxr next (checkout default, pull, new numbered branch)
+
+## v0.2.0 — Scaffolding
+
+- [x] `mxr new <name>` — scaffold a repo, generate CLAUDE.md, push to GitHub
+- [x] User-configurable CLAUDE.md templates at `~/.config/mxr/templates.toml`
