@@ -95,6 +95,18 @@ impl Templates {
                         "pnpm + Turborepo + Astro + Vite + Vitest + Biome + Preact + Zustand".into(),
                     body: format!("{SHARED_BASE}\n{TS_MONOREPO_PART3}"),
                 },
+                Template {
+                    name: "python".into(),
+                    tech_stack: "Python".into(),
+                    description: "Python project (uv, Ruff, ty, pytest)".into(),
+                    body: format!("{SHARED_BASE}\n{PYTHON_PART3}"),
+                },
+                Template {
+                    name: "go-service".into(),
+                    tech_stack: "Go backend service".into(),
+                    description: "Go HTTP service (go modules, golangci-lint, go test)".into(),
+                    body: format!("{SHARED_BASE}\n{GO_SERVICE_PART3}"),
+                },
             ],
         }
     }
@@ -341,6 +353,95 @@ const TS_MONOREPO_PART3: &str = r#"## Part 3 — TypeScript Monorepo
 - Pin tool versions; bump deliberately and run `pnpm turbo build test` after upgrades.
 "#;
 
+const PYTHON_PART3: &str = r#"## Part 3 — Python Project
+
+### Tech Stack
+
+- **Python:** 3.13+
+- **Package / project manager:** uv `0.11`
+- **Lint + format:** Ruff `0.15`
+- **Type checker:** ty `0.0` (Astral; mypy is the conservative alternative if a stable checker is required)
+- **Testing:** pytest `9.0`
+- **Config:** single `pyproject.toml` as the source of truth for all tools
+
+### Build & Check Commands
+
+- Install + sync env: `uv sync`
+- Add a dependency: `uv add <pkg>` (use `uv add --dev <pkg>` for dev tools)
+- Run a command in the env: `uv run <cmd>`
+- Test: `uv run pytest`
+- Lint: `uv run ruff check`
+- Lint + autofix: `uv run ruff check --fix`
+- Format: `uv run ruff format`
+- Format check: `uv run ruff format --check`
+- Type-check: `uv run ty check`
+
+### Conventions
+
+- Commit `uv.lock` — it pins the exact, reproducible dependency set.
+- Type-annotate all public functions and module-level APIs; keep `ty`/mypy clean.
+- Prefer the standard library; reach for a dependency only when it earns its place.
+- Use `pathlib` over `os.path`, and `logging` over `print` in library code.
+- Keep tests in `tests/`, named `test_*.py`; use fixtures and `parametrize` over duplication.
+- Tests must be deterministic — no real network, no wall-clock dependence.
+
+### Structure
+
+```
+{{name}}/
+├── pyproject.toml       # deps + Ruff/ty/pytest config
+├── uv.lock              # committed lockfile
+├── src/{{name}}/        # package code (src layout)
+└── tests/               # pytest suite
+```
+"#;
+
+const GO_SERVICE_PART3: &str = r#"## Part 3 — Go Backend Service
+
+### Tech Stack
+
+- **Language:** Go `1.26` (modules)
+- **HTTP:** standard library `net/http` (`http.ServeMux` routing)
+- **Logging:** standard library `log/slog` (structured)
+- **Lint:** golangci-lint `2.12`
+- **Testing:** `go test` (table-driven, stdlib `testing`)
+- **Format:** `gofmt` / `goimports`
+
+### Build & Check Commands
+
+- Build: `go build ./...`
+- Run: `go run ./cmd/{{name}}`
+- Test: `go test ./...`
+- Test with race detector: `go test -race ./...`
+- Lint: `golangci-lint run`
+- Format: `gofmt -w .`
+- Tidy modules: `go mod tidy`
+- Vet: `go vet ./...`
+
+### Conventions
+
+- Return errors, don't panic in request paths; wrap with `fmt.Errorf("...: %w", err)` to preserve the chain.
+- Accept `context.Context` as the first argument on anything that does I/O; honor cancellation.
+- Keep `package main` thin — wiring only. Business logic lives in internal packages.
+- Use `internal/` for code that must not be imported by other modules.
+- Prefer the standard library; add a dependency only when it clearly pays for itself.
+- Configure via environment variables; never commit secrets.
+- Table-driven tests with subtests (`t.Run`); tests must be deterministic.
+
+### Structure
+
+```
+{{name}}/
+├── go.mod
+├── cmd/{{name}}/        # main package — entrypoint, wiring
+│   └── main.go
+├── internal/
+│   ├── server/         # http.Handler setup, middleware, routes
+│   └── ...             # domain packages
+└── .golangci.yml        # lint config
+```
+"#;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -386,7 +487,14 @@ mod tests {
     #[test]
     fn stack_templates_present() {
         let templates = Templates::defaults();
-        for name in ["default", "rust", "kb", "ts-monorepo"] {
+        for name in [
+            "default",
+            "rust",
+            "kb",
+            "ts-monorepo",
+            "python",
+            "go-service",
+        ] {
             assert!(templates.find(name).is_some(), "missing template {name}");
         }
     }
@@ -394,7 +502,7 @@ mod tests {
     #[test]
     fn stack_templates_extend_shared_base() {
         let templates = Templates::defaults();
-        for name in ["rust", "kb", "ts-monorepo"] {
+        for name in ["rust", "kb", "ts-monorepo", "python", "go-service"] {
             let body = &templates.find(name).unwrap().body;
             assert!(
                 body.contains("## Part 1 — Behavioral Guidelines"),

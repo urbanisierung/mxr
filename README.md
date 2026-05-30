@@ -72,6 +72,8 @@ written on first run; edit them to set up your own. Each body shares a portable 
 | `rust` | Rust — cargo, clippy, rustfmt |
 | `kb` | Markdown knowledge base — markdownlint-cli2, Prettier, cspell |
 | `ts-monorepo` | pnpm + Turborepo + Astro + Vite + Vitest + Biome + Preact + Zustand |
+| `python` | Python — uv, Ruff, ty, pytest |
+| `go-service` | Go backend service — net/http, golangci-lint, go test |
 
 `{{name}}` and `{{stack}}` in the body are substituted when scaffolding:
 
