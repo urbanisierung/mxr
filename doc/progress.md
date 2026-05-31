@@ -1,5 +1,23 @@
 # Progress
 
+## 2026-05-31 (later)
+
+- Added `mxr claude init` to seed a repo's `.claude/` with configurable Claude
+  Code skills and plugins so they can be committed. Skills are written as
+  `.claude/skills/<name>/SKILL.md`; plugins are merged into
+  `.claude/settings.json`. Existing skill files are left alone unless `--force`;
+  settings.json is deep-merged idempotently (arrays dedup, objects merge).
+- Added `mxr-core::claude` with user-configurable presets at
+  `~/.config/mxr/claude.toml` (built-in defaults written on first run, same as
+  templates). A plugin is `kind = "marketplace"` (registers
+  `extraKnownMarketplaces` + `enabledPlugins`) or `kind = "settings"` (a raw JSON
+  fragment merged in, e.g. a hook).
+- Default presets ship the `caveman` skill (concise token-saving SKILL.md) and
+  the `rtk` plugin (Rust Token Killer PreToolUse hook; needs the `rtk` binary and
+  a one-time `rtk init -g`).
+- `mxr new --claude` seeds the skills/plugins into the new repo before the
+  initial commit.
+
 ## 2026-05-31
 
 - Added `mxr deploy` to create a deploy target via the providers' official CLIs:

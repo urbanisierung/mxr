@@ -25,3 +25,9 @@
 - [x] `mxr deploy pages/worker/fly` — create a deploy target via wrangler / C3 / flyctl
 - [x] `mxr secret set` + `mxr secret cloudflare`/`fly` — manage GitHub Actions secrets via `gh`
 - [x] `mxr new --deploy <cloudflare-pages|fly>` — create the deploy target while scaffolding
+
+## v0.4.0 — Claude skills & plugins
+
+- [x] `mxr claude init` — seed `.claude/` skills + plugins into a repo, configurable via `~/.config/mxr/claude.toml`
+- [x] Built-in defaults: `caveman` skill + `rtk` plugin (token savers)
+- [x] `mxr new --claude` — seed skills/plugins while scaffolding

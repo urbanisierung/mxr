@@ -51,6 +51,9 @@ enum Commands {
         /// Also create a deploy target: "cloudflare-pages" or "fly"
         #[arg(long)]
         deploy: Option<String>,
+        /// Also seed Claude skills/plugins into the repo (.claude/)
+        #[arg(long)]
+        claude: bool,
     },
     /// Create a deploy target (Cloudflare Pages/Worker or Fly.io)
     Deploy {
@@ -61,6 +64,11 @@ enum Commands {
     Secret {
         #[command(subcommand)]
         action: SecretAction,
+    },
+    /// Seed Claude skills/plugins into a repo (.claude/)
+    Claude {
+        #[command(subcommand)]
+        action: ClaudeAction,
     },
     /// Create a Cloudflare Pages project (alias for deploy pages)
     Pages {
@@ -160,6 +168,19 @@ enum SecretAction {
     Fly,
 }
 
+#[derive(Subcommand)]
+enum ClaudeAction {
+    /// Write configured skills + plugins into the repo's .claude/ directory
+    Init {
+        /// Repo to seed (default: current directory)
+        #[arg(long)]
+        dir: Option<PathBuf>,
+        /// Overwrite existing skill files
+        #[arg(long)]
+        force: bool,
+    },
+}
+
 fn main() {
     maybe_print_update_hint();
     let cli = Cli::parse();
@@ -203,6 +224,7 @@ fn run(cli: Cli) -> Result<()> {
             public,
             dir,
             deploy,
+            claude,
         }) => cmd_new(
             &name,
             org.as_deref(),
@@ -210,6 +232,7 @@ fn run(cli: Cli) -> Result<()> {
             public,
             dir,
             deploy.as_deref(),
+            claude,
         ),
         Some(Commands::Deploy { action }) => match action {
             DeployAction::Pages { name, branch } => cmd_deploy_pages(&name, &branch),
@@ -220,6 +243,9 @@ fn run(cli: Cli) -> Result<()> {
             SecretAction::Set { key, value } => cmd_secret_set(&key, value.as_deref()),
             SecretAction::Cloudflare => cmd_secret_preset(mxr_core::deploy::CLOUDFLARE_SECRETS),
             SecretAction::Fly => cmd_secret_preset(mxr_core::deploy::FLY_SECRETS),
+        },
+        Some(Commands::Claude { action }) => match action {
+            ClaudeAction::Init { dir, force } => cmd_claude_init(dir, force),
         },
         Some(Commands::Pages { name, branch }) => cmd_deploy_pages(&name, &branch),
         Some(Commands::Worker { name }) => cmd_deploy_worker(&name),
@@ -349,6 +375,7 @@ fn cmd_new(
     public: bool,
     dir: Option<PathBuf>,
     deploy: Option<&str>,
+    claude: bool,
 ) -> Result<()> {
     require_cmd("git")?;
     require_cmd("gh")?;
@@ -377,6 +404,10 @@ fn cmd_new(
     std::fs::create_dir_all(&target).with_context(|| format!("create {}", target.display()))?;
 
     std::fs::write(target.join("CLAUDE.md"), tmpl.render(name)).context("write CLAUDE.md")?;
+
+    if claude {
+        seed_claude(&target, false)?;
+    }
 
     run_cmd_in(&target, "git", &["init", "-q"])?;
     run_cmd_in(&target, "git", &["add", "-A"])?;
@@ -484,6 +515,35 @@ fn cmd_secret_set(key: &str, value: Option<&str>) -> Result<()> {
 fn cmd_secret_preset(keys: &[&str]) -> Result<()> {
     for key in keys {
         cmd_secret_set(key, None)?;
+    }
+    Ok(())
+}
+
+fn cmd_claude_init(dir: Option<PathBuf>, force: bool) -> Result<()> {
+    let target = match dir {
+        Some(p) => p,
+        None => std::env::current_dir().context("get current directory")?,
+    };
+    seed_claude(&target, force)
+}
+
+fn seed_claude(target: &Path, force: bool) -> Result<()> {
+    let config = mxr_core::claude::ClaudeConfig::load()?;
+    let result = mxr_core::claude::apply(&config, target, force)?;
+    if !result.skills_written.is_empty() {
+        println!("Skills written: {}.", result.skills_written.join(", "));
+    }
+    if !result.skills_skipped.is_empty() {
+        println!(
+            "Skills skipped (exist, use --force): {}.",
+            result.skills_skipped.join(", ")
+        );
+    }
+    if !result.plugins_applied.is_empty() {
+        println!(
+            "Plugins applied to .claude/settings.json: {}.",
+            result.plugins_applied.join(", ")
+        );
     }
     Ok(())
 }
@@ -627,6 +687,7 @@ fn cmd_help() {
     println!("  secret set <KEY> [VALUE]   set a GitHub Actions secret (gh)");
     println!("  secret cloudflare          set Cloudflare deploy secrets");
     println!("  secret fly                 set Fly.io deploy secret");
+    println!("  claude init [--force]      seed .claude/ skills + plugins into repo");
     println!("  next                       checkout default branch, pull, new branch");
     println!("  import [--file <path>]     import legacy ~/.config/.mytmux");
     println!("  update [--check]           self-update from GitHub releases");

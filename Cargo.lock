@@ -670,6 +670,7 @@ dependencies = [
  "anyhow",
  "dirs",
  "serde",
+ "serde_json",
  "tempfile",
  "toml",
 ]

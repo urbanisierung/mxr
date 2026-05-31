@@ -1,3 +1,4 @@
+pub mod claude;
 pub mod config;
 pub mod deploy;
 pub mod import;

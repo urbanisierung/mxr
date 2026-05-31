@@ -40,6 +40,9 @@ mxr sync all user@host
 # Scaffold a new repo: generate CLAUDE.md, init, push to GitHub
 mxr new myproject --template rust
 
+# Seed Claude skills + plugins into a repo (.claude/), ready to commit
+mxr claude init
+
 # Quick commit + push + PR
 mxr ship "feat: add something"
 
@@ -118,6 +121,51 @@ mxr new myapp --deploy fly
 never handled by mxr — `gh` reads them from stdin so they stay out of your
 shell history and argv when omitted.
 
+## Claude skills & plugins
+
+`mxr claude init` seeds the current repo's `.claude/` with configurable Claude
+Code skills and plugins so they can be committed and shared with anyone who
+clones it:
+
+```sh
+mxr claude init            # write skills + plugins into ./.claude/
+mxr claude init --force     # overwrite existing skill files
+mxr new myapp --claude      # seed during scaffolding (before the initial commit)
+```
+
+- **Skills** are written as `.claude/skills/<name>/SKILL.md`.
+- **Plugins** are merged into `.claude/settings.json`. Existing files are left
+  alone (skills) or deep-merged idempotently (settings.json).
+
+Presets live in `~/.config/mxr/claude.toml` (defaults written on first run, same
+as templates). Built-in defaults are two token-savers: the **caveman** skill and
+the **rtk** plugin. A plugin is one of two kinds:
+
+```toml
+[[skill]]
+name = "caveman"
+description = "Talk like caveman to save output tokens."
+body = "# Caveman Mode\n..."
+
+# kind = "settings": a raw JSON fragment merged into settings.json (e.g. a hook)
+[[plugin]]
+name = "rtk"
+kind = "settings"
+settings_json = '{ "hooks": { "PreToolUse": [ ... ] } }'
+
+# kind = "marketplace": register a marketplace and enable the plugin from it
+[[plugin]]
+name = "my-plugin"
+kind = "marketplace"
+marketplace = "my-mp"
+source = "github"        # or "git"/"url" with a `url` field
+repo = "owner/repo"
+```
+
+The `rtk` default needs the [`rtk`](https://github.com/rtk-ai/rtk) binary
+installed and a one-time `rtk init -g` (it installs the hook script the committed
+settings reference).
+
 ## Commands
 
 | Command | Description |
@@ -131,7 +179,8 @@ shell history and argv when omitted.
 | `mxr sync binary <user@host>` | Copy binary to remote |
 | `mxr sync all <user@host>` | Copy both |
 | `mxr ship [message]` | Commit, push, create PR |
-| `mxr new <name> [--org O] [--template T] [--public] [--deploy P]` | Scaffold a repo + CLAUDE.md, push to GitHub, optionally create a deploy target |
+| `mxr new <name> [--org O] [--template T] [--public] [--deploy P] [--claude]` | Scaffold a repo + CLAUDE.md, push to GitHub, optionally create a deploy target and seed `.claude/` |
+| `mxr claude init [--dir D] [--force]` | Seed `.claude/` skills + plugins into a repo |
 | `mxr deploy pages <name> [--branch B]` | Create a Cloudflare Pages project (wrangler) |
 | `mxr deploy worker <name>` | Scaffold a Cloudflare Worker (C3) |
 | `mxr deploy fly [name]` | Create a Fly.io app (flyctl) |
