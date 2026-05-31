@@ -11,3 +11,8 @@
 - **mxr update / --check**: self-update from GitHub releases
 - **Auto-update hint**: non-blocking stderr notice when update available (>24h check interval)
 - **Static musl binaries**: x86_64 and aarch64 Linux
+
+## 2026-05-30 — Scaffolding
+
+- **mxr new <name>**: scaffold a new project — generate a CLAUDE.md from a template, `git init`, create the GitHub repo (use `--org` for an existing organization, `--public` for visibility), push, and register it as an mxr session
+- **Configurable templates**: CLAUDE.md presets live in `~/.config/mxr/templates.toml`. Defaults (`default`, `rust`, `node`, `python`) are written on first run; each user edits them to taste. Bodies support `{{name}}` and `{{stack}}` placeholders

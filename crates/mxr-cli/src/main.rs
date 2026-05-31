@@ -1,10 +1,15 @@
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 #[derive(Parser)]
-#[command(name = "mxr", version, about = "tmux workspace manager", disable_help_subcommand = true)]
+#[command(
+    name = "mxr",
+    version,
+    about = "tmux workspace manager",
+    disable_help_subcommand = true
+)]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
@@ -26,6 +31,23 @@ enum Commands {
     Ship {
         /// Commit message (default: "wip <timestamp>")
         message: Option<String>,
+    },
+    /// Scaffold a new repo with a generated CLAUDE.md and push to GitHub
+    New {
+        /// Repository name
+        name: String,
+        /// Create under an existing organization (default: your account)
+        #[arg(long)]
+        org: Option<String>,
+        /// CLAUDE.md template to use (default: "default")
+        #[arg(long, short)]
+        template: Option<String>,
+        /// Make the repository public (default: private)
+        #[arg(long)]
+        public: bool,
+        /// Directory to create the project in (default: ./<name>)
+        #[arg(long)]
+        dir: Option<PathBuf>,
     },
     /// Import sessions from legacy ~/.config/.mytmux format
     Import {
@@ -125,6 +147,13 @@ fn run(cli: Cli) -> Result<()> {
             }
         },
         Some(Commands::Ship { message }) => cmd_ship(message.as_deref()),
+        Some(Commands::New {
+            name,
+            org,
+            template,
+            public,
+            dir,
+        }) => cmd_new(&name, org.as_deref(), template.as_deref(), public, dir),
         Some(Commands::Import { file }) => cmd_import(file),
         Some(Commands::Update { check }) => cmd_update(check),
         Some(Commands::Next) => cmd_next(),
@@ -243,6 +272,82 @@ fn cmd_ship(message: Option<&str>) -> Result<()> {
     Ok(())
 }
 
+fn cmd_new(
+    name: &str,
+    org: Option<&str>,
+    template: Option<&str>,
+    public: bool,
+    dir: Option<PathBuf>,
+) -> Result<()> {
+    require_cmd("git")?;
+    require_cmd("gh")?;
+
+    let templates = mxr_core::templates::Templates::load()?;
+    let tmpl_name = template.unwrap_or("default");
+    let tmpl = templates.find(tmpl_name).ok_or_else(|| {
+        anyhow::anyhow!(
+            "template '{}' not found. Edit {} to add it.",
+            tmpl_name,
+            mxr_core::templates::templates_path()
+                .map(|p| p.display().to_string())
+                .unwrap_or_else(|_| "templates.toml".to_string())
+        )
+    })?;
+
+    let target = match dir {
+        Some(p) => p,
+        None => std::env::current_dir()
+            .context("get current directory")?
+            .join(name),
+    };
+    if target.exists() {
+        anyhow::bail!("directory '{}' already exists", target.display());
+    }
+    std::fs::create_dir_all(&target).with_context(|| format!("create {}", target.display()))?;
+
+    std::fs::write(target.join("CLAUDE.md"), tmpl.render(name)).context("write CLAUDE.md")?;
+
+    run_cmd_in(&target, "git", &["init", "-q"])?;
+    run_cmd_in(&target, "git", &["add", "-A"])?;
+    run_cmd_in(&target, "git", &["commit", "-q", "-m", "initial commit"])?;
+
+    let full_name = match org {
+        Some(o) => format!("{}/{}", o, name),
+        None => name.to_string(),
+    };
+    let visibility = if public { "--public" } else { "--private" };
+    run_cmd_in(
+        &target,
+        "gh",
+        &[
+            "repo",
+            "create",
+            &full_name,
+            visibility,
+            "--source=.",
+            "--remote=origin",
+            "--push",
+        ],
+    )
+    .context("gh repo create")?;
+
+    let mut config = mxr_core::config::Config::load()?;
+    let path_str = target
+        .canonicalize()
+        .unwrap_or(target)
+        .to_string_lossy()
+        .into_owned();
+    if config.add(name.to_string(), vec![path_str]).is_ok() {
+        config.save()?;
+    }
+
+    println!(
+        "Created '{}' from template '{}' and pushed to GitHub.",
+        full_name, tmpl_name
+    );
+    Ok(())
+}
+
 fn cmd_import(file: Option<PathBuf>) -> Result<()> {
     let path = match file {
         Some(p) => p,
@@ -313,9 +418,20 @@ fn run_cmd(cmd: &str, args: &[&str]) -> Result<()> {
     Ok(())
 }
 
+fn run_cmd_in(dir: &Path, cmd: &str, args: &[&str]) -> Result<()> {
+    let status = Command::new(cmd)
+        .args(args)
+        .current_dir(dir)
+        .status()
+        .with_context(|| format!("run '{}'", cmd))?;
+    if !status.success() {
+        anyhow::bail!("'{}' exited with non-zero status", cmd);
+    }
+    Ok(())
+}
+
 fn cmd_back() -> Result<()> {
-    run_cmd("tmux", &["attach"])
-        .map_err(|_| anyhow::anyhow!("no tmux sessions to attach to"))
+    run_cmd("tmux", &["attach"]).map_err(|_| anyhow::anyhow!("no tmux sessions to attach to"))
 }
 
 fn cmd_kill(name: &str) -> Result<()> {
@@ -364,6 +480,7 @@ fn cmd_help() {
     println!("  sync binary <host>         copy mxr binary to remote");
     println!("  sync all <host>            copy config and binary");
     println!("  ship [msg]                 commit, push, open PR");
+    println!("  new <name> [--org O]        scaffold repo + CLAUDE.md, push to GitHub");
     println!("  next                       checkout default branch, pull, new branch");
     println!("  import [--file <path>]     import legacy ~/.config/.mytmux");
     println!("  update [--check]           self-update from GitHub releases");
@@ -424,11 +541,7 @@ fn git_default_branch() -> Result<String> {
     }
     for branch in &["main", "master"] {
         let ok = Command::new("git")
-            .args([
-                "show-ref",
-                "--verify",
-                &format!("refs/heads/{}", branch),
-            ])
+            .args(["show-ref", "--verify", &format!("refs/heads/{}", branch)])
             .output()
             .map(|o| o.status.success())
             .unwrap_or(false);

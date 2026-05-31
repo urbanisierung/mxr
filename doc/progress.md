@@ -1,5 +1,12 @@
 # Progress
 
+## 2026-05-30
+
+- Added `mxr new <name>` to scaffold a repo: render a CLAUDE.md from a template, `git init` + initial commit, create and push the GitHub repo via `gh` (`--org` targets an existing org, `--public` toggles visibility), and register it as a session.
+- Added `mxr-core::templates` module with user-configurable presets at `~/.config/mxr/templates.toml`; built-in defaults written on first run.
+- Built-in templates now ship a shared base (CLAUDE.md Part 1 + Part 2, portable across stacks) plus a stack-specific Part 3. Stacks: `default` (base only), `rust`, `kb` (Markdown knowledge base), and `ts-monorepo` (pnpm + Turborepo + Astro + Vite + Vitest + Biome + Preact + Zustand, versions pinned to current latest).
+- Added `python` (uv + Ruff + ty + pytest) and `go-service` (Go 1.26 net/http + golangci-lint + go test) templates, versions pinned to current latest.
+
 ## 2026-05-29
 
 - Fix install.sh 404: it downloaded from `releases/latest/download/...`, but
