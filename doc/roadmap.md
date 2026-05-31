@@ -19,3 +19,15 @@
 
 - [x] `mxr new <name>` — scaffold a repo, generate CLAUDE.md, push to GitHub
 - [x] User-configurable CLAUDE.md templates at `~/.config/mxr/templates.toml`
+
+## v0.3.0 — Deploy targets & secrets
+
+- [x] `mxr deploy pages/worker/fly` — create a deploy target via wrangler / C3 / flyctl
+- [x] `mxr secret set` + `mxr secret cloudflare`/`fly` — manage GitHub Actions secrets via `gh`
+- [x] `mxr new --deploy <cloudflare-pages|fly>` — create the deploy target while scaffolding
+
+## v0.4.0 — Claude skills & plugins
+
+- [x] `mxr claude init` — seed `.claude/` skills + plugins into a repo, configurable via `~/.config/mxr/claude.toml`
+- [x] Built-in defaults: `caveman` + `lean-context` skills, `rtk` + `ast-grep` + `superpowers` plugins (token savers)
+- [x] `mxr new --claude` — seed skills/plugins while scaffolding

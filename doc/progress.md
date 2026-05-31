@@ -1,5 +1,44 @@
 # Progress
 
+## 2026-05-31 (later)
+
+- Added `mxr claude init` to seed a repo's `.claude/` with configurable Claude
+  Code skills and plugins so they can be committed. Skills are written as
+  `.claude/skills/<name>/SKILL.md`; plugins are merged into
+  `.claude/settings.json`. Existing skill files are left alone unless `--force`;
+  settings.json is deep-merged idempotently (arrays dedup, objects merge).
+- Added `mxr-core::claude` with user-configurable presets at
+  `~/.config/mxr/claude.toml` (built-in defaults written on first run, same as
+  templates). A plugin is `kind = "marketplace"` (registers
+  `extraKnownMarketplaces` + `enabledPlugins`) or `kind = "settings"` (a raw JSON
+  fragment merged in, e.g. a hook).
+- Default presets ship five token-savers: `caveman` (terse-prose skill) and
+  `lean-context` (search-before-read / narrow-read skill); `rtk` (Rust Token
+  Killer PreToolUse hook; needs the `rtk` binary + a one-time `rtk init -g`),
+  `ast-grep` (marketplace plugin for structural search; needs the `ast-grep`
+  binary), and `superpowers` (marketplace plugin; TDD/planning/debugging
+  workflows that cut expensive redo loops).
+- `mxr new --claude` seeds the skills/plugins into the new repo before the
+  initial commit.
+
+## 2026-05-31
+
+- Added `mxr deploy` to create a deploy target via the providers' official CLIs:
+  `pages` (`wrangler pages project create`), `worker` (C3 / `npm create
+  cloudflare@latest`), and `fly` (`flyctl apps create`, `--generate-name` when no
+  name is given). Each prints a hint pointing at the matching `mxr secret`
+  command. Available both as `mxr deploy <target>` and as top-level aliases
+  `mxr pages`/`mxr worker`/`mxr fly`.
+- Added `mxr secret` to manage GitHub Actions secrets via `gh`: `secret set <KEY>
+  [VALUE]` (value read from stdin by `gh` when omitted, so it stays out of argv),
+  plus `secret cloudflare` (CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID) and
+  `secret fly` (FLY_API_TOKEN) presets matching the deploy workflows.
+- `mxr new --deploy <cloudflare-pages|fly>` now creates the deploy target after
+  pushing the repo (worker is rejected with a hint, since C3 scaffolds a fresh
+  project that conflicts with the new repo).
+- Added `mxr-core::deploy` with pure argument-builders for the above, covered by
+  unit tests; the CLI crate spawns the commands.
+
 ## 2026-05-30
 
 - Added `mxr new <name>` to scaffold a repo: render a CLAUDE.md from a template, `git init` + initial commit, create and push the GitHub repo via `gh` (`--org` targets an existing org, `--public` toggles visibility), and register it as a session.
