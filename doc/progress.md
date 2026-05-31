@@ -1,5 +1,23 @@
 # Progress
 
+## 2026-05-31
+
+- Added `mxr deploy` to create a deploy target via the providers' official CLIs:
+  `pages` (`wrangler pages project create`), `worker` (C3 / `npm create
+  cloudflare@latest`), and `fly` (`flyctl apps create`, `--generate-name` when no
+  name is given). Each prints a hint pointing at the matching `mxr secret`
+  command. Available both as `mxr deploy <target>` and as top-level aliases
+  `mxr pages`/`mxr worker`/`mxr fly`.
+- Added `mxr secret` to manage GitHub Actions secrets via `gh`: `secret set <KEY>
+  [VALUE]` (value read from stdin by `gh` when omitted, so it stays out of argv),
+  plus `secret cloudflare` (CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID) and
+  `secret fly` (FLY_API_TOKEN) presets matching the deploy workflows.
+- `mxr new --deploy <cloudflare-pages|fly>` now creates the deploy target after
+  pushing the repo (worker is rejected with a hint, since C3 scaffolds a fresh
+  project that conflicts with the new repo).
+- Added `mxr-core::deploy` with pure argument-builders for the above, covered by
+  unit tests; the CLI crate spawns the commands.
+
 ## 2026-05-30
 
 - Added `mxr new <name>` to scaffold a repo: render a CLAUDE.md from a template, `git init` + initial commit, create and push the GitHub repo via `gh` (`--org` targets an existing org, `--public` toggles visibility), and register it as a session.
