@@ -138,8 +138,16 @@ mxr new myapp --claude      # seed during scaffolding (before the initial commit
   alone (skills) or deep-merged idempotently (settings.json).
 
 Presets live in `~/.config/mxr/claude.toml` (defaults written on first run, same
-as templates). Built-in defaults are two token-savers: the **caveman** skill and
-the **rtk** plugin. A plugin is one of two kinds:
+as templates). Built-in defaults are token-savers:
+
+| Preset | Kind | Saves | Needs |
+|--------|------|-------|-------|
+| `caveman` | skill | output tokens (terse prose) | — |
+| `lean-context` | skill | context tokens (search-before-read, narrow reads) | — |
+| `rtk` | plugin (settings) | tool-output tokens (Bash hook) | `rtk` binary + `rtk init -g` |
+| `ast-grep` | plugin (marketplace) | context tokens (structural search vs full reads) | `ast-grep` binary |
+
+A plugin is one of two kinds:
 
 ```toml
 [[skill]]

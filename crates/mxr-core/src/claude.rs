@@ -93,24 +93,48 @@ impl ClaudeConfig {
 
     pub fn defaults() -> Self {
         ClaudeConfig {
-            skill: vec![Skill {
-                name: "caveman".into(),
-                description: "Talk like caveman to save output tokens. Few token do trick.".into(),
-                body: CAVEMAN_BODY.into(),
-            }],
-            plugin: vec![Plugin {
-                name: "rtk".into(),
-                description: "Rust Token Killer — PreToolUse hook compresses Bash output. \
-                              Needs the `rtk` binary installed and `rtk init -g` run once \
-                              (installs ~/.claude/hooks/rtk-rewrite.sh)."
-                    .into(),
-                kind: "settings".into(),
-                marketplace: None,
-                source: None,
-                repo: None,
-                url: None,
-                settings_json: Some(RTK_SETTINGS.into()),
-            }],
+            skill: vec![
+                Skill {
+                    name: "caveman".into(),
+                    description: "Talk like caveman to save output tokens. Few token do trick."
+                        .into(),
+                    body: CAVEMAN_BODY.into(),
+                },
+                Skill {
+                    name: "lean-context".into(),
+                    description: "Minimize context tokens: search before reading, read narrow \
+                                  ranges, never re-read, batch tool calls."
+                        .into(),
+                    body: LEAN_CONTEXT_BODY.into(),
+                },
+            ],
+            plugin: vec![
+                Plugin {
+                    name: "rtk".into(),
+                    description: "Rust Token Killer — PreToolUse hook compresses Bash output. \
+                                  Needs the `rtk` binary installed and `rtk init -g` run once \
+                                  (installs ~/.claude/hooks/rtk-rewrite.sh)."
+                        .into(),
+                    kind: "settings".into(),
+                    marketplace: None,
+                    source: None,
+                    repo: None,
+                    url: None,
+                    settings_json: Some(RTK_SETTINGS.into()),
+                },
+                Plugin {
+                    name: "ast-grep".into(),
+                    description: "Structural code search via AST patterns — find code without \
+                                  reading whole files. Needs the `ast-grep` binary installed."
+                        .into(),
+                    kind: "marketplace".into(),
+                    marketplace: Some("ast-grep-marketplace".into()),
+                    source: Some("github".into()),
+                    repo: Some("ast-grep/agent-skill".into()),
+                    url: None,
+                    settings_json: None,
+                },
+            ],
         }
     }
 }
@@ -280,6 +304,37 @@ confirmations, multi-step sequences where compression risk confusion. Resume
 caveman after.
 "#;
 
+const LEAN_CONTEXT_BODY: &str = r#"# Lean Context
+
+Minimize tokens spent loading context. Every file read and tool result persists
+across turns, so each one is a recurring cost. Spend the fewest tokens that still
+answers the question.
+
+## Reading files
+
+- Search first. Use grep/glob to locate the exact symbol or lines, then read only
+  that range (offset/limit) — not the whole file.
+- Never re-read a file already in context; trust the prior read.
+- For large files, read the relevant function or section, not the entire file.
+
+## Searching
+
+- Prefer precise patterns and narrow scope (specific dirs/extensions) over broad,
+  whole-tree reads.
+- Use structural search when matching code shape, not just text.
+
+## Tool calls
+
+- Batch independent reads/searches into one turn so they run in parallel.
+- Filter noisy command output (head/tail/grep); request only the fields you need.
+- Don't dump full build/test logs — grep for the failure line.
+
+## Output
+
+- Answer directly; skip preamble and restating the task.
+- Reference code as path:line instead of pasting large blocks.
+"#;
+
 const RTK_SETTINGS: &str = r#"{
   "hooks": {
     "PreToolUse": [
@@ -412,29 +467,65 @@ mod tests {
         assert_eq!(base["c"], serde_json::json!(2));
     }
 
+    fn one_skill_one_plugin() -> ClaudeConfig {
+        ClaudeConfig {
+            skill: vec![Skill {
+                name: "demo".into(),
+                description: "d".into(),
+                body: "body".into(),
+            }],
+            plugin: vec![Plugin {
+                name: "hook".into(),
+                description: String::new(),
+                kind: "settings".into(),
+                marketplace: None,
+                source: None,
+                repo: None,
+                url: None,
+                settings_json: Some(RTK_SETTINGS.into()),
+            }],
+        }
+    }
+
     #[test]
     fn apply_writes_skill_and_settings_idempotently() {
         let dir = tempdir().unwrap();
-        let cfg = ClaudeConfig::defaults();
+        let cfg = one_skill_one_plugin();
 
         let r1 = apply(&cfg, dir.path(), false).unwrap();
-        assert_eq!(r1.skills_written, ["caveman"]);
-        assert_eq!(r1.plugins_applied, ["rtk"]);
+        assert_eq!(r1.skills_written, ["demo"]);
+        assert_eq!(r1.plugins_applied, ["hook"]);
 
-        let skill = dir.path().join(".claude/skills/caveman/SKILL.md");
-        assert!(skill.exists());
+        assert!(dir.path().join(".claude/skills/demo/SKILL.md").exists());
         let settings_path = dir.path().join(".claude/settings.json");
         let first = fs::read_to_string(&settings_path).unwrap();
-        // settings.json got the rtk PreToolUse hook
         let parsed: Value = serde_json::from_str(&first).unwrap();
         assert_eq!(parsed["hooks"]["PreToolUse"][0]["matcher"], "Bash");
 
         // Re-apply: skill already exists (skipped), settings unchanged.
         let r2 = apply(&cfg, dir.path(), false).unwrap();
-        assert_eq!(r2.skills_skipped, ["caveman"]);
+        assert_eq!(r2.skills_skipped, ["demo"]);
         assert!(r2.skills_written.is_empty());
         let second = fs::read_to_string(&settings_path).unwrap();
         assert_eq!(first, second);
+    }
+
+    #[test]
+    fn defaults_ship_expected_token_savers() {
+        let cfg = ClaudeConfig::defaults();
+        let skills: Vec<&str> = cfg.skill.iter().map(|s| s.name.as_str()).collect();
+        assert!(skills.contains(&"caveman"));
+        assert!(skills.contains(&"lean-context"));
+
+        let ast = cfg.plugin.iter().find(|p| p.name == "ast-grep").unwrap();
+        assert_eq!(ast.kind, "marketplace");
+        assert_eq!(ast.marketplace.as_deref(), Some("ast-grep-marketplace"));
+        assert_eq!(ast.repo.as_deref(), Some("ast-grep/agent-skill"));
+
+        // Every default plugin must build a valid overlay.
+        for p in &cfg.plugin {
+            plugin_overlay(p).unwrap();
+        }
     }
 
     #[test]

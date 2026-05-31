@@ -12,9 +12,11 @@
   templates). A plugin is `kind = "marketplace"` (registers
   `extraKnownMarketplaces` + `enabledPlugins`) or `kind = "settings"` (a raw JSON
   fragment merged in, e.g. a hook).
-- Default presets ship the `caveman` skill (concise token-saving SKILL.md) and
-  the `rtk` plugin (Rust Token Killer PreToolUse hook; needs the `rtk` binary and
-  a one-time `rtk init -g`).
+- Default presets ship four token-savers: `caveman` (terse-prose skill) and
+  `lean-context` (search-before-read / narrow-read skill); `rtk` (Rust Token
+  Killer PreToolUse hook; needs the `rtk` binary + a one-time `rtk init -g`) and
+  `ast-grep` (marketplace plugin for structural search; needs the `ast-grep`
+  binary).
 - `mxr new --claude` seeds the skills/plugins into the new repo before the
   initial commit.
 

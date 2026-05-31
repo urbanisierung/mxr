@@ -15,7 +15,7 @@
 ## 2026-05-31 — Claude skills & plugins
 
 - **mxr claude init**: seed a repo's `.claude/` with configurable Claude Code skills (`.claude/skills/<name>/SKILL.md`) and plugins (merged into `.claude/settings.json`) so they can be committed. `--force` overwrites existing skill files
-- **Configurable presets**: skills/plugins live in `~/.config/mxr/claude.toml`, defaults written on first run. Plugins are either `kind = "marketplace"` (extraKnownMarketplaces + enabledPlugins) or `kind = "settings"` (a raw JSON fragment, e.g. a hook). Defaults ship the `caveman` skill and the `rtk` plugin (both token-savers)
+- **Configurable presets**: skills/plugins live in `~/.config/mxr/claude.toml`, defaults written on first run. Plugins are either `kind = "marketplace"` (extraKnownMarketplaces + enabledPlugins) or `kind = "settings"` (a raw JSON fragment, e.g. a hook). Defaults ship four token-savers: the `caveman` and `lean-context` skills, and the `rtk` (hook) and `ast-grep` (marketplace) plugins
 - **mxr new --claude**: seed skills/plugins as part of scaffolding a new repo
 
 ## 2026-05-31 — Deploy targets & secrets
