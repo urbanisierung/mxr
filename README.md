@@ -146,6 +146,7 @@ as templates). Built-in defaults are token-savers:
 | `lean-context` | skill | context tokens (search-before-read, narrow reads) | — |
 | `rtk` | plugin (settings) | tool-output tokens (Bash hook) | `rtk` binary + `rtk init -g` |
 | `ast-grep` | plugin (marketplace) | context tokens (structural search vs full reads) | `ast-grep` binary |
+| `superpowers` | plugin (marketplace) | redo-loop tokens (TDD/planning/debugging workflows) | — |
 
 A plugin is one of two kinds:
 

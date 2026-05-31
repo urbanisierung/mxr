@@ -29,5 +29,5 @@
 ## v0.4.0 — Claude skills & plugins
 
 - [x] `mxr claude init` — seed `.claude/` skills + plugins into a repo, configurable via `~/.config/mxr/claude.toml`
-- [x] Built-in defaults: `caveman` + `lean-context` skills, `rtk` + `ast-grep` plugins (token savers)
+- [x] Built-in defaults: `caveman` + `lean-context` skills, `rtk` + `ast-grep` + `superpowers` plugins (token savers)
 - [x] `mxr new --claude` — seed skills/plugins while scaffolding

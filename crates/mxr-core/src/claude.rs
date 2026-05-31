@@ -134,6 +134,19 @@ impl ClaudeConfig {
                     url: None,
                     settings_json: None,
                 },
+                Plugin {
+                    name: "superpowers".into(),
+                    description: "Agentic skills framework — TDD, planning, and debugging \
+                                  workflows that cut expensive redo loops (brainstorm, \
+                                  write-plan, execute-plan)."
+                        .into(),
+                    kind: "marketplace".into(),
+                    marketplace: Some("superpowers-marketplace".into()),
+                    source: Some("github".into()),
+                    repo: Some("obra/superpowers-marketplace".into()),
+                    url: None,
+                    settings_json: None,
+                },
             ],
         }
     }
@@ -521,6 +534,10 @@ mod tests {
         assert_eq!(ast.kind, "marketplace");
         assert_eq!(ast.marketplace.as_deref(), Some("ast-grep-marketplace"));
         assert_eq!(ast.repo.as_deref(), Some("ast-grep/agent-skill"));
+
+        let sp = cfg.plugin.iter().find(|p| p.name == "superpowers").unwrap();
+        assert_eq!(sp.marketplace.as_deref(), Some("superpowers-marketplace"));
+        assert_eq!(sp.repo.as_deref(), Some("obra/superpowers-marketplace"));
 
         // Every default plugin must build a valid overlay.
         for p in &cfg.plugin {
