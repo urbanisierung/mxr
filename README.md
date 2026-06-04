@@ -12,15 +12,13 @@ Rust CLI tool for managing tmux sessions and workspace workflows on remote machi
 ## Install
 
 ```sh
-curl -sSfL https://github.com/urbanisierung/mxr/releases/latest/download/mxr-linux-x86_64 -o ~/.local/bin/mxr
-chmod +x ~/.local/bin/mxr
-```
-
-Or use the install script:
-
-```sh
 curl -sSfL https://raw.githubusercontent.com/urbanisierung/mxr/main/install.sh | sh
 ```
+
+The install script auto-detects your architecture (x86_64 / aarch64) and
+resolves the newest release. mxr's `0.x` builds are published as prereleases,
+so the `releases/latest/download/...` URL does not resolve yet — use the
+script above (or grab a binary from the [releases page](https://github.com/urbanisierung/mxr/releases)).
 
 ## Quickstart
 

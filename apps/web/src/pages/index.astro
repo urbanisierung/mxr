@@ -74,9 +74,9 @@ import Layout from '../layouts/Layout.astro';
         <h2 class="install__head">Get it.</h2>
         <div class="install__block">
           <pre class="install__pre"><code class="install__code">curl -sSfL \
-  https://github.com/urbanisierung/mxr/releases/latest/download/mxr-linux-x86_64 \
-  -o ~/.local/bin/mxr &amp;&amp; chmod +x ~/.local/bin/mxr</code></pre>
-          <button class="install__copy" aria-label="Copy install command" data-copy="curl -sSfL https://github.com/urbanisierung/mxr/releases/latest/download/mxr-linux-x86_64 -o ~/.local/bin/mxr && chmod +x ~/.local/bin/mxr">
+  https://raw.githubusercontent.com/urbanisierung/mxr/main/install.sh \
+  | sh</code></pre>
+          <button class="install__copy" aria-label="Copy install command" data-copy="curl -sSfL https://raw.githubusercontent.com/urbanisierung/mxr/main/install.sh | sh">
             <span class="copy-label">copy</span>
           </button>
         </div>
