@@ -680,7 +680,7 @@ fn cmd_help() {
     println!("  sync binary <host>         copy mxr binary to remote");
     println!("  sync all <host>            copy config and binary");
     println!("  ship [msg]                 commit, push, open PR");
-    println!("  new <name> [--org O]        scaffold repo + CLAUDE.md, push to GitHub");
+    println!("  new <name> [--template T]  scaffold repo + CLAUDE.md, push (--org, --public, --deploy, --claude)");
     println!("  deploy pages <name>        create a Cloudflare Pages project (wrangler)");
     println!("  deploy worker <name>       scaffold a Cloudflare Worker (C3)");
     println!("  deploy fly [name]          create a Fly.io app (flyctl)");

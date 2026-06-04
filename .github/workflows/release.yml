@@ -32,6 +32,11 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y musl-tools gcc-aarch64-linux-gnu
 
+      - name: Stamp version from tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
+
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
         env:

@@ -2,6 +2,30 @@
 
 ## 2026-06-04
 
+- Landing page (`apps/web`): added a copy-to-clipboard install command in the
+  hero so it's visible without scrolling (plus an `--install` nav link), and
+  expanded the commands section to cover functionality that had been missing —
+  `mxr new` (template scaffolding), `mxr next`, `mxr claude init`, and
+  `mxr deploy`. Broadened the eyebrow to "tmux workspace manager + project
+  workflows" and noted `mxr update` in the install meta. The copy handler now
+  wires up every button on the page.
+
+- Fixed `mxr -V` / `mxr update` reporting the wrong version. The crate versions
+  were hard-coded to `0.1.0` in each `crates/*/Cargo.toml`, and `release.yml`
+  built whatever was in those files, so every released binary reported `0.1.0`
+  regardless of its tag (`0.0.3`, `0.0.4`, …). `mxr update` reads its own
+  version via `CARGO_PKG_VERSION`, so it saw `0.1.0`, compared it against the
+  latest release `0.0.4`, and refused to update (`0.1.0 > 0.0.4`). Fix: moved
+  the version to `[workspace.package]` (single source of truth, crates inherit
+  via `version.workspace = true`), set it to the current release `0.0.4`, and
+  added a release step that stamps the version from the pushed tag before
+  building so the binary's reported version always matches the release.
+
+- `mxr help`: refreshed the `new` line, which was stale — it only showed
+  `[--org O]` and never surfaced `--template` (the flag for picking one of the
+  built-in CLAUDE.md presets) or `--public`/`--deploy`/`--claude`. The `new`
+  subcommand itself already existed; only the hand-written help summary lagged.
+
 - Fixed the install command 404. The landing page (`apps/web`) and README pointed
   at `releases/latest/download/mxr-linux-x86_64`, but GitHub's `latest` endpoint
   only resolves full releases — mxr's `0.x` builds are all prereleases, so that
