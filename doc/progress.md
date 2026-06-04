@@ -1,5 +1,13 @@
 # Progress
 
+## 2026-06-04
+
+- Fixed the install command 404. The landing page (`apps/web`) and README pointed
+  at `releases/latest/download/mxr-linux-x86_64`, but GitHub's `latest` endpoint
+  only resolves full releases — mxr's `0.x` builds are all prereleases, so that
+  URL 404s. Both now use the existing `install.sh` one-liner, which resolves the
+  newest release (prereleases included) via the API and auto-detects the arch.
+
 ## 2026-05-31 (later)
 
 - Added `mxr claude init` to seed a repo's `.claude/` with configurable Claude
