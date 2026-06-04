@@ -3,7 +3,10 @@ interface Props {
   title: string;
   description?: string;
 }
-const { title, description = "mxr — tmux workspace manager for remote machines. One config. Every machine." } = Astro.props;
+const {
+  title,
+  description = "mxr — tmux workspace manager for remote machines. One config. Every machine.",
+} = Astro.props;
 ---
 <!doctype html>
 <html lang="en">
