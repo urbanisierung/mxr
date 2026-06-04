@@ -10,6 +10,7 @@ import Layout from '../layouts/Layout.astro';
       <span class="nav__prompt" aria-hidden="true">$</span>
       <a href="/" class="nav__wordmark">mxr</a>
       <div class="nav__flags" role="list">
+        <a href="#install" class="nav__flag" role="listitem">--install</a>
         <a href="https://github.com/urbanisierung/mxr/releases" class="nav__flag" role="listitem">--releases</a>
         <a href="https://github.com/urbanisierung/mxr" class="nav__flag" role="listitem">--github</a>
       </div>
@@ -21,9 +22,18 @@ import Layout from '../layouts/Layout.astro';
     <!-- Manifesto hero -->
     <section class="hero reveal" style="--i:1">
       <div class="site-frame">
-        <p class="hero__eyebrow">tmux workspace manager for remote machines</p>
+        <p class="hero__eyebrow">tmux workspace manager + project workflows</p>
         <h1 class="hero__display">REMOTE<br/>MACHINES<br/>FORGET.</h1>
         <p class="hero__sub">mxr doesn't.</p>
+        <div class="hero__install">
+          <div class="hero__install-row">
+            <code class="hero__install-cmd">curl -sSfL https://raw.githubusercontent.com/urbanisierung/mxr/main/install.sh | sh</code>
+            <button class="install__copy hero__install-copy" aria-label="Copy install command" data-copy="curl -sSfL https://raw.githubusercontent.com/urbanisierung/mxr/main/install.sh | sh">
+              <span class="copy-label">copy</span>
+            </button>
+          </div>
+          <p class="hero__install-meta">x86_64 / aarch64 Linux · static musl binary · no runtime <a href="#install">details →</a></p>
+        </div>
       </div>
     </section>
 
@@ -64,12 +74,28 @@ import Layout from '../layouts/Layout.astro';
             <code class="command-line">mxr ship "fix: stop losing sessions"</code>
             <p class="command-desc"><code>git add -A</code>, commit, push, open a PR. The full flow in one command.</p>
           </li>
+          <li class="command-item">
+            <code class="command-line">mxr new myapp --template rust</code>
+            <p class="command-desc">Scaffold a new repo from a <code>CLAUDE.md</code> template — <code>git init</code>, create the GitHub repo, push, and register it as a session. Presets for Rust, Python, Go, TypeScript, and more.</p>
+          </li>
+          <li class="command-item">
+            <code class="command-line">mxr next</code>
+            <p class="command-desc">Checkout the default branch, pull, and cut the next numbered branch. Start the next piece of work without naming it.</p>
+          </li>
+          <li class="command-item">
+            <code class="command-line">mxr claude init</code>
+            <p class="command-desc">Seed a repo's <code>.claude/</code> with your Claude Code skills and plugins, ready to commit.</p>
+          </li>
+          <li class="command-item">
+            <code class="command-line">mxr deploy pages myapp</code>
+            <p class="command-desc">Create a Cloudflare Pages, Worker, or Fly.io target, then wire up CI credentials with <code>mxr secret</code>.</p>
+          </li>
         </ol>
       </div>
     </section>
 
     <!-- Install CTA -->
-    <section class="install reveal" style="--i:5">
+    <section class="install reveal" id="install" style="--i:5">
       <div class="site-frame">
         <h2 class="install__head">Get it.</h2>
         <div class="install__block">
@@ -80,7 +106,7 @@ import Layout from '../layouts/Layout.astro';
             <span class="copy-label">copy</span>
           </button>
         </div>
-        <p class="install__meta">x86_64 and aarch64 Linux. Static musl binary. No runtime required. <a href="https://github.com/urbanisierung/mxr/releases">All releases →</a></p>
+        <p class="install__meta">x86_64 and aarch64 Linux. Static musl binary. No runtime required. Update in place later with <code>mxr update</code>. <a href="https://github.com/urbanisierung/mxr/releases">All releases →</a></p>
       </div>
     </section>
   </main>
@@ -196,6 +222,52 @@ import Layout from '../layouts/Layout.astro';
     color: var(--color-accent);
     letter-spacing: -0.02em;
   }
+
+  .hero__install {
+    margin-top: var(--space-2xl);
+    max-width: var(--measure);
+  }
+
+  .hero__install-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    background-color: var(--color-paper-inv);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+  }
+
+  .hero__install-cmd {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-ink-inv);
+    line-height: 1.6;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-rule-inv) transparent;
+  }
+
+  .hero__install-copy {
+    flex-shrink: 0;
+  }
+
+  .hero__install-meta {
+    margin-top: var(--space-sm);
+    font-size: var(--text-xs);
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    letter-spacing: 0.02em;
+  }
+
+  .hero__install-meta a {
+    color: var(--color-neutral);
+    text-decoration: underline;
+  }
+
+  .hero__install-meta a:hover { color: var(--color-accent); }
 
   /* ── Claims ──────────────────────────────────────────────── */
   .claims {
@@ -483,13 +555,15 @@ import Layout from '../layouts/Layout.astro';
 </style>
 
 <script>
-  // Copy install command
-  document.querySelector<HTMLButtonElement>('.install__copy')?.addEventListener('click', function() {
-    const cmd = this.dataset.copy;
-    if (!cmd) return;
-    navigator.clipboard.writeText(cmd).then(() => {
-      this.dataset.copied = 'true';
-      setTimeout(() => { delete this.dataset.copied; }, 2000);
-    }).catch(() => {});
+  // Copy install command (handles every copy button on the page)
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const cmd = btn.dataset.copy;
+      if (!cmd) return;
+      navigator.clipboard.writeText(cmd).then(() => {
+        btn.dataset.copied = 'true';
+        setTimeout(() => { delete btn.dataset.copied; }, 2000);
+      }).catch(() => {});
+    });
   });
 </script>

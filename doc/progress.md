@@ -2,6 +2,14 @@
 
 ## 2026-06-04
 
+- Landing page (`apps/web`): added a copy-to-clipboard install command in the
+  hero so it's visible without scrolling (plus an `--install` nav link), and
+  expanded the commands section to cover functionality that had been missing —
+  `mxr new` (template scaffolding), `mxr next`, `mxr claude init`, and
+  `mxr deploy`. Broadened the eyebrow to "tmux workspace manager + project
+  workflows" and noted `mxr update` in the install meta. The copy handler now
+  wires up every button on the page.
+
 - Fixed `mxr -V` / `mxr update` reporting the wrong version. The crate versions
   were hard-coded to `0.1.0` in each `crates/*/Cargo.toml`, and `release.yml`
   built whatever was in those files, so every released binary reported `0.1.0`
