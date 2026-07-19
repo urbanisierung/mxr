@@ -119,6 +119,28 @@ mxr new myapp --deploy fly
 never handled by mxr — `gh` reads them from stdin so they stay out of your
 shell history and argv when omitted.
 
+## Scaffolding from Claude Code web (phone / browser)
+
+`mxr new` needs a laptop. When you're on the run and want to spin up a project
+from the Claude app, use the `/new-project` skill in this repo instead — it's the
+web equivalent, driven entirely through the GitHub integration (no `gh`/`mxr`
+binary required):
+
+1. From the Claude app, open a Claude Code session on this repo (`urbanisierung/mxr`).
+2. Prompt: `/new-project rust foo` (or `/new-project ts my-app`).
+
+Claude creates the GitHub repo, seeds it with the matching
+[`templates/<stack>/CLAUDE.md`](templates/), a README, and a `.gitignore`, then
+pushes the initial commit and hands back the repo URL.
+
+- Stacks: `rust`, `ts`. Flags: `--org <org>`, `--public` (default private).
+- The stack templates are plain files under `templates/` — the same CLAUDE.md
+  bodies `mxr new` writes locally, kept as files so a web session can read and
+  render them.
+- The skill lives at `.claude/skills/new-project/SKILL.md`. Make it a one-tap
+  trigger by wiring it to a Routine (scheduled/on-demand prompt) — see the
+  [Claude Code on the web docs](https://code.claude.com/docs/en/claude-code-on-the-web).
+
 ## Claude skills & plugins
 
 `mxr claude init` seeds the current repo's `.claude/` with configurable Claude

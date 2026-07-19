@@ -28,3 +28,8 @@
 
 - **mxr new <name>**: scaffold a new project — generate a CLAUDE.md from a template, `git init`, create the GitHub repo (use `--org` for an existing organization, `--public` for visibility), push, and register it as an mxr session
 - **Configurable templates**: CLAUDE.md presets live in `~/.config/mxr/templates.toml`. Defaults (`default`, `rust`, `node`, `python`) are written on first run; each user edits them to taste. Bodies support `{{name}}` and `{{stack}}` placeholders
+
+## 2026-07-19 — Claude Code web scaffolding
+
+- **`/new-project` skill**: scaffold a new project from a phone/browser Claude Code session — the web equivalent of `mxr new`, driven through the GitHub integration (no `gh`/`mxr` binary). Invoke as `/new-project <stack> <name> [--org O] [--public]`; creates the GitHub repo and seeds a rendered CLAUDE.md, README, and .gitignore in one commit. Lives at `.claude/skills/new-project/SKILL.md`
+- **Stack template files**: `templates/rust/CLAUDE.md` and `templates/ts/CLAUDE.md` — the CLAUDE.md bodies `mxr new` writes locally, kept as files (with `{{name}}`/`{{stack}}` placeholders) so a web session can read and render them
