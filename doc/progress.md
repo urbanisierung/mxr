@@ -1,5 +1,19 @@
 # Progress
 
+## 2026-07-19
+
+- **Claude Code web scaffolding**: added a `/new-project` skill
+  (`.claude/skills/new-project/SKILL.md`) so a new project can be scaffolded from
+  a phone/browser Claude Code session — the web equivalent of `mxr new`, driven
+  through the GitHub integration (no `gh`/`mxr` binary). Invoke as
+  `/new-project <stack> <name>`; it creates the repo and seeds CLAUDE.md, README,
+  and .gitignore.
+- **Template files**: added `templates/rust/CLAUDE.md` and
+  `templates/ts/CLAUDE.md` — the same CLAUDE.md bodies `mxr new` writes locally,
+  kept as files (with `{{name}}`/`{{stack}}` placeholders) so a web session can
+  read and render them.
+- README: documented the phone/browser scaffolding workflow.
+
 ## 2026-06-04
 
 - Landing page (`apps/web`): added a copy-to-clipboard install command in the

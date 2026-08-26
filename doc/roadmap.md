@@ -31,3 +31,8 @@
 - [x] `mxr claude init` — seed `.claude/` skills + plugins into a repo, configurable via `~/.config/mxr/claude.toml`
 - [x] Built-in defaults: `caveman` + `lean-context` skills, `rtk` + `ast-grep` + `superpowers` plugins (token savers)
 - [x] `mxr new --claude` — seed skills/plugins while scaffolding
+
+## v0.5.0 — Claude Code web scaffolding
+
+- [x] `/new-project <stack> <name>` skill — scaffold a repo from a phone/browser Claude Code session (web equivalent of `mxr new`, via the GitHub integration)
+- [x] Stack template files under `templates/` (`rust`, `ts`) readable/renderable by a web session
